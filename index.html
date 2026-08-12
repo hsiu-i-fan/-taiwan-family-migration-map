@@ -713,7 +713,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .lang-btn:hover{background:var(--paper-dim);}
   .lang-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
-  #main{flex:1;display:flex;min-height:0;}
+  #main{flex:1;display:flex;min-height:0;overflow:hidden;}
   #mapCol{flex:1 1 60%;position:relative;min-width:0;overflow:hidden;}
   #map{width:100%;height:100%;background:#e9e2d0;}
 
@@ -868,8 +868,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
     header h1{font-size:1.1rem;}
     header p{font-size:.8rem;line-height:1.55;margin-top:3px;}
     #main{flex-direction:column;min-height:0;}
-    #mapCol{flex:1 1 55%;min-height:220px;width:100%;}
-    #panel{flex:1 1 45%;max-width:none;min-height:160px;border-left:none;border-top:2px solid var(--ink);}
+    #mapCol{flex:1 1 62%;min-height:280px;width:100%;}
+    #panel{flex:1 1 38%;max-width:none;min-height:0;border-left:none;border-top:2px solid var(--ink);}
     .layer-box{max-width:150px;font-size:.7rem;padding:8px 10px;}
     .legend-box{display:none;}
     #timelineWrap{padding:6px 10px 10px;}
@@ -877,9 +877,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   }
 
   @media (max-width:480px){
-    header{max-height:30vh;}
+    header{max-height:26vh;}
     header h1{font-size:1rem;}
-    #mapCol{min-height:200px;}
+    #mapCol{min-height:240px;}
   }
 
   #watermark{
