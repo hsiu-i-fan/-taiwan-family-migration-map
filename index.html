@@ -722,6 +722,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
     border-left:2px solid var(--ink);
     background:var(--paper);
     overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
     padding:16px 18px 30px;
   }
   #panel h2{margin:0 0 2px;font-size:1.15rem;border-bottom:1px solid var(--line);padding-bottom:6px;}
@@ -825,6 +827,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   #timelineWrap .tl-title{font-size:.75rem;color:#7a6a4c;letter-spacing:.08em;margin-bottom:6px;}
   #timeline{
     display:flex;gap:0;overflow-x:auto;padding:6px 4px 4px;position:relative;
+    -webkit-overflow-scrolling:touch;
   }
   .tl-item{
     flex:0 0 auto;width:150px;padding:0 14px;position:relative;cursor:pointer;
@@ -993,7 +996,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div id="timeline"></div>
   </div>
 
-  <div id="watermark"><span id="watermarkEl">115學年度 台北市立大同高中 地理科探究實作課程 製作者：范秀儀教師</span></div>
+  <div id="watermark"><span id="watermarkEl">115學年度 台北市立大同高中 地理科探究實作課程 製作者：范秀儀教師</span> <span style="opacity:.5;font-size:.85em;">(v2026-08-12-mobile-fix-6)</span></div>
 </div>
 
 <script>
@@ -1797,6 +1800,9 @@ function selectLocation(id){
   // 先關閉所有史料標記的名稱提示，避免切到其他地點時畫面上還留著
   Object.values(historicalMarkers).forEach(hm=> hm.closeTooltip());
   if(loc.relatedHistorical && loc.relatedHistorical.length){
+    // 先確保 Leaflet 拿到的地圖容器尺寸是最新的（避免頁面剛載入、版面還在調整時，
+    // 尺寸快取過期導致縮放計算錯誤，誤判成地圖很小而只顯示單一點位）
+    map.invalidateSize();
     // 同時包含主要地點與相關史料點，讓地圖自動縮放到能看到全部標記
     const bounds = L.latLngBounds([[loc.lat, loc.lng]]);
     loc.relatedHistorical.forEach(hid=>{
