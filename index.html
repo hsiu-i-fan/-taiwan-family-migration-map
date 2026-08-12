@@ -869,7 +869,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     header p{font-size:.8rem;line-height:1.55;margin-top:3px;}
     #main{flex-direction:column;min-height:0;}
     #mapCol{flex:1 1 62%;min-height:280px;width:100%;}
-    #panel{flex:1 1 38%;max-width:none;min-height:0;border-left:none;border-top:2px solid var(--ink);}
+    #panel{flex:1 1 38%;max-width:none;min-height:110px;border-left:none;border-top:2px solid var(--ink);}
     .layer-box{max-width:150px;font-size:.7rem;padding:8px 10px;max-height:calc(100% - 56px);}
     .legend-box{display:none;}
     #timelineWrap{padding:6px 10px 10px;}
@@ -1780,7 +1780,11 @@ const historicalMarkers = {};
 historicalLocations.forEach(loc=>{
   const m = L.marker([loc.lat, loc.lng], { icon: historicalIcon(loc) }).addTo(map);
   m.bindTooltip(tr(loc,'name'), {direction:'top', offset:[0,-8]});
-  m.bindPopup(historicalPopupContent(loc), {maxWidth:260});
+  // 內容較長時（例如茶業歷史說明加照片），若不限制高度，popup 可能比地圖區塊本身還高，
+  // 手機畫面地圖區塊較小，一旦 popup 撐爆，內容會被地圖容器裁掉看不到。
+  // 加上 maxHeight 讓 Leaflet 自動在 popup 內部產生捲軸，而不是被裁切或蓋住下方版面。
+  const popupMaxHeight = window.innerWidth <= 800 ? 180 : 260;
+  m.bindPopup(historicalPopupContent(loc), {maxWidth:260, maxHeight:popupMaxHeight});
   historicalMarkers[loc.id] = m;
 });
 
@@ -1793,21 +1797,19 @@ function selectLocation(id){
   // 先關閉所有史料標記的名稱提示，避免切到其他地點時畫面上還留著
   Object.values(historicalMarkers).forEach(hm=> hm.closeTooltip());
   if(loc.relatedHistorical && loc.relatedHistorical.length){
+    // 同時包含主要地點與相關史料點，讓地圖自動縮放到能看到全部標記
+    const bounds = L.latLngBounds([[loc.lat, loc.lng]]);
+    loc.relatedHistorical.forEach(hid=>{
+      const h = historicalLocations.find(x=>x.id===hid);
+      if(h) bounds.extend([h.lat, h.lng]);
+    });
+    // 手機地圖區塊較小，留白用小一點，讓實際可用的地圖空間最大化，
+    // 縮放等級由 Leaflet 依實際地圖區塊高度自動計算，不再強制只顯示主要地點。
     const isMobileView = window.innerWidth <= 800;
-    if(isMobileView){
-      // 手機畫面較小，若硬要把所有相關史料點塞進同一畫面，會被迫縮到很低的縮放等級，
-      // 導致點位在小螢幕上看起來擠成一團。改為聚焦主要地點本身、適度放大，
-      // 史料點仍會顯示在地圖上（可平移查看），但不強制全部塞入同一視野。
-      map.flyTo([loc.lat, loc.lng], 15, { duration:0.6 });
-    } else {
-      // 同時包含主要地點與相關史料點，讓地圖自動縮放到能看到全部標記
-      const bounds = L.latLngBounds([[loc.lat, loc.lng]]);
-      loc.relatedHistorical.forEach(hid=>{
-        const h = historicalLocations.find(x=>x.id===hid);
-        if(h) bounds.extend([h.lat, h.lng]);
-      });
-      map.flyToBounds(bounds, { paddingTopLeft:[60,60], paddingBottomRight:[60,170], maxZoom:14, duration:0.6 });
-    }
+    const flyOpts = isMobileView
+      ? { paddingTopLeft:[16,16], paddingBottomRight:[16,36], maxZoom:16, duration:0.6 }
+      : { paddingTopLeft:[60,60], paddingBottomRight:[60,170], maxZoom:14, duration:0.6 };
+    map.flyToBounds(bounds, flyOpts);
     // 同時把相關史料點的名稱標籤打開，方便一眼看出它們跟主要地點的關聯
     loc.relatedHistorical.forEach(hid=>{
       if(historicalMarkers[hid]) historicalMarkers[hid].openTooltip();
